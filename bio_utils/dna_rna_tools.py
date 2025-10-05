@@ -2,20 +2,21 @@
 
 from typing import Callable, List, Tuple, Union, Sequence
 
+
 def is_nucleic_acid(seq: str) -> bool:
-"""
-    Проверяет, является ли строка нуклеиновой кислотой (ДНК или РНК),
+    """
+    Проверяет, является ли строка
+    нуклеиновой кислотой (ДНК или РНК),
     используя итеративный подход.
 
     Args:
         seq (str): Входная последовательность.
 
     Returns:
-        bool: True, если последовательность валидна, иначе False.
+        bool: True, если последовательность валидна,
+        иначе False.
     """
-    if not isinstance(seq, str):
-        return False
-    if seq == "":
+    if not isinstance(seq, str) or not seq:
         return False
     seq_upper = seq.upper()
     valid_nucleotides = {"A", "T", "G", "C", "U"}
@@ -28,21 +29,21 @@ def is_nucleic_acid(seq: str) -> bool:
 
 
 def transcribe_sequence(seq: str) -> str:
-"""Транскрибирует ДНК последовательность в РНК."""
+    """Транскрибирует ДНК последовательность в РНК."""
     if not isinstance(seq, str):
         raise TypeError("transcribe_sequence expects a string")
     return seq.replace("T", "U").replace("t", "u")
 
 
 def reverse_sequence(seq):
-"""Возвращает перевернутую последовательность."""
+    """Возвращает перевернутую последовательность."""
     if not isinstance(seq, str):
         raise TypeError("reverse_sequence expects a string")
     return seq[::-1]
 
 
 def complement_sequence(seq):
-"""
+    """
     Возвращает комплементарную последовательность, используя
     логику с проверкой на РНК и словарями.
     """
@@ -76,21 +77,25 @@ def complement_sequence(seq):
 
 
 def reverse_complement_sequence(seq: str) -> str:
-"""Возвращает обратную комплементарную последовательность."""
+    """Возвращает обратную комплементарную последовательность."""
     if not isinstance(seq, str):
-        raise TypeError("reverse_complement_sequence expects a string")
+        raise TypeError(
+              "reverse_complement_sequence expects a string"
+              )
     return reverse_sequence(complement_sequence(seq))
 
 
 def get_command_handler(command: str) -> Tuple[str, Callable[[str], Union[str, bool]]]:
- """
-    Возвращает тип команды и соответствующую ей функцию-обработчик.
+    """
+    Возвращает тип команды и
+    соответствующую ей функцию-обработчик.
 
     Args:
         command (str): Название команды.
 
     Returns:
-        Tuple[str, Callable]: Кортеж из типа команды ("check" или "action") и функции.
+        Tuple[str, Callable]: Кортеж из
+        типа команды ("check" или "action") и функции.
 
     Raises:
         ValueError: Если команда неизвестна.
@@ -109,18 +114,24 @@ def get_command_handler(command: str) -> Tuple[str, Callable[[str], Union[str, b
 
 
 def apply_actions(
-    sequences: Sequence[str],
-    mode: str, func: Callable) -> Union[List[Union[str, bool, None]], Union[str, bool, None]]:
-	"""
-    Применяет функцию к списку последовательностей в зависимости от режима.
+    sequences: Sequence[str], mode: str, func: Callable
+) -> Union[List[Union[str, bool, None]], Union[str, bool, None]]:
+    """
+    Применяет функцию к списку последовательностей
+    в зависимости от режима.
 
     Args:
-        sequences (Sequence[str]): Кортеж или список последовательностей.
-        mode (str): Режим работы ("check" или "action").
-        func (Callable): Функция для применения.
+        sequences (Sequence[str]):
+            Кортеж или список последовательностей.
+        mode (str):
+            Режим работы ("check" или "action").
+        func (Callable):
+            Функция для применения.
 
     Returns:
-        Union[List, str, bool, None]: Список результатов или один результат, если на вход подана одна последовательность.
+        Union[List, str, bool, None]:
+            Список результатов или один результат,
+            если на вход подана одна последовательность.
     """
     results = []
     if mode == "check":
@@ -135,18 +146,27 @@ def apply_actions(
     return results[0] if len(results) == 1 else results
 
 
-def run_dna_rna_tools(*sequences: str, command: str) -> Union[List[Union[str, bool, None]], Union[str, bool, None]]:
+def run_dna_rna_tools(
+    *sequences: str, command: str
+) -> Union[List[Union[str, bool, None]], Union[str, bool, None]]:
     """
-    Главная функция для работы с ДНК/РНК последовательностями.
+    Главная функция для работы с
+    ДНК/РНК последовательностями.
 
-    Принимает любое количество последовательностей и одну команду.
+    Принимает любое количество
+    последовательностей и одну команду.
 
     Args:
-        *sequences (str): Одна или несколько последовательностей для обработки.
-        command (str): Команда для выполнения (например, "transcribe").
+        *sequences (str):
+            Одна или несколько
+            последовательностей для обработки.
+        command (str):
+            Команда для выполнения
+            (например, "transcribe").
 
     Returns:
-        Результат(ы) выполнения команды. Может быть одним значением или списком.
+        Результат(ы) выполнения команды.
+        Может быть одним значением или списком.
     """
     if not sequences:
         raise ValueError("At least one sequence is required")

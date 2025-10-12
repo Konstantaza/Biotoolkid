@@ -10,3 +10,4 @@ __pycache__/
 
 # Output directories
 filtered/
+processing_results/

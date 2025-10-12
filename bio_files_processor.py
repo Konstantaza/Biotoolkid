@@ -1,10 +1,10 @@
 # bio_files_processor.py
-import os
 import re
 from pathlib import Path
-from typing import List, Optional, Generator, Tuple
+from typing import Optional, Generator, Tuple
 
 # Функция 1: Работа с FASTA
+
 
 def _fasta_parser(input_fasta: str) -> Generator[Tuple[str, str], None, None]:
     """
@@ -16,6 +16,8 @@ def _fasta_parser(input_fasta: str) -> Generator[Tuple[str, str], None, None]:
     with open(input_fasta, 'r') as f:
         for line in f:
             line = line.strip()
+            if not line:
+                continue
             if line.startswith('>'):
                 if header:
                     yield header, ''.join(sequence)
@@ -26,22 +28,20 @@ def _fasta_parser(input_fasta: str) -> Generator[Tuple[str, str], None, None]:
         if header:
             yield header, ''.join(sequence)
 
+
 def convert_multiline_fasta_to_oneline(
     input_fasta: str, output_fasta: Optional[str] = None
 ) -> None:
     """
     Преобразует многострочный FASTA файл в однострочный.
     """
-    # Создаем папку для результатов, если она не существует
     output_dir = Path("processing_results")
     output_dir.mkdir(exist_ok=True)
 
     if output_fasta is None:
-        # Получаем имя файла из пути
         base_name = Path(input_fasta).stem
         output_fasta = f"{base_name}_oneline.fasta"
 
-    # Собираем финальный путь к файлу внутри новой папки
     final_output_path = output_dir / output_fasta
 
     with open(final_output_path, 'w') as out_f:
@@ -50,13 +50,14 @@ def convert_multiline_fasta_to_oneline(
             out_f.write(f"{sequence}\n")
     print(f"Однострочный FASTA файл сохранен как: {final_output_path}")
 
+
 # Функция 2: Работа с BLAST
+
 
 def parse_blast_output(input_file: str, output_file: str) -> None:
     """
     Извлекает описания лучших совпадений из текстового вывода BLAST.
     """
-    # Создаем папку для результатов, если она не существует
     output_dir = Path("processing_results")
     output_dir.mkdir(exist_ok=True)
 
@@ -74,8 +75,6 @@ def parse_blast_output(input_file: str, output_file: str) -> None:
                     top_hits.append(parts[0])
 
     top_hits.sort()
-
-    # Собираем финальный путь к файлу внутри новой папки
     final_output_path = output_dir / output_file
 
     with open(final_output_path, 'w') as out_f:
@@ -85,6 +84,7 @@ def parse_blast_output(input_file: str, output_file: str) -> None:
 
 
 # Блок для демонстрации работы
+
 if __name__ == "__main__":
     print("--- Тестирование конвертера FASTA ---")
     convert_multiline_fasta_to_oneline(

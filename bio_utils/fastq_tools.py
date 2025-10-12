@@ -1,12 +1,12 @@
 # bio_utils/fastq_tools.py
-from typing import Dict, Tuple, Union
 from pathlib import Path
+from typing import Dict, Tuple
+
+# Объявляем псевдоним типа для удобства.
 FastqDict = Dict[str, Tuple[str, str]]
 
-def is_passing_gc_filter(
-    seq: str,
-    gc_bounds: Union[int, float, Tuple[Union[int, float], Union[int, float]]],
-) -> bool:
+
+def is_passing_gc_filter(seq: str, gc_bounds: tuple) -> bool:
     """Проверяет, проходит ли последовательность по GC-составу."""
     if not seq:
         return False
@@ -16,14 +16,11 @@ def is_passing_gc_filter(
     if isinstance(gc_bounds, (int, float)):
         return gc_content <= gc_bounds
 
-    # Распаковка кортежа
     low_bound, upper_bound = gc_bounds
     return low_bound <= gc_content <= upper_bound
 
 
-def is_passing_length_filter(
-    seq: str, length_bounds: Union[int, Tuple[int, int]]
-) -> bool:
+def is_passing_length_filter(seq: str, length_bounds: tuple) -> bool:
     """Проверяет, проходит ли последовательность по длине."""
     seq_len = len(seq)
     if isinstance(length_bounds, int):
@@ -33,7 +30,7 @@ def is_passing_length_filter(
 
 
 def is_passing_quality_filter(quality_str: str, quality_threshold: int) -> bool:
-    """Проверяет, проходит ли последовательность по среднему качеству Phred33."""
+    """Проверяет, проходит ли последовательность по среднему качеству (Phred33)."""
     if not quality_str:
         return False
     quality_scores = [ord(char) - 33 for char in quality_str]
@@ -41,7 +38,6 @@ def is_passing_quality_filter(quality_str: str, quality_threshold: int) -> bool:
     return average_quality >= quality_threshold
 
 
-# Новая функция для чтения
 def read_fastq(input_path: Path) -> FastqDict:
     """
     Читает FASTQ файл и преобразует его в словарь.
@@ -58,22 +54,24 @@ def read_fastq(input_path: Path) -> FastqDict:
             sequences[name] = (seq, quality)
     return sequences
 
-# Новая функция для записи
+
 def write_fastq(sequences: FastqDict, output_path: str) -> None:
     """
     Записывает отфильтрованные последовательности в новый FASTQ файл.
     Создает папку 'filtered', если ее нет, и избегает перезаписи.
     """
-    # Создаем путь к папке 'filtered' в текущей директории
     output_dir = Path.cwd() / "filtered"
     output_dir.mkdir(exist_ok=True)
 
     final_path = output_dir / output_path
 
-    # Защита от случайной перезаписи
+    # Защита от случайной перезаписи, как требовалось в задании
     if final_path.exists():
-        print(f"Предупреждение: Файл {final_path} уже существует. Запись отменена.")
-        return  # Прекращаем выполнение, чтобы не стереть данные
+        print(
+            f"Предупреждение: Файл {final_path} уже существует. "
+            f"Запись отменена."
+        )
+        return
 
     with open(final_path, "w") as f:
         for name, (seq, quality) in sequences.items():

@@ -1,14 +1,14 @@
 # main.py
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import List, Tuple, Union
 
-# Импортируем вспомогательные функции, включая новые
+# Импортируем функции, включая новые
 from bio_utils.fastq_tools import (
     is_passing_gc_filter,
     is_passing_length_filter,
     is_passing_quality_filter,
-    read_fastq,  # Функция читатель
-    write_fastq, # Функция писатель
+    read_fastq,  # Читатель
+    write_fastq,  # Писатель
 )
 from bio_utils.dna_rna_tools import (
     apply_actions,
@@ -17,10 +17,13 @@ from bio_utils.dna_rna_tools import (
 
 # Главные функции
 
+
 def filter_fastq(
     input_fastq: str,
     output_fastq: str,
-    gc_bounds: Union[int, float, Tuple[Union[int, float], Union[int, float]]] = (0, 100),
+    gc_bounds: Union[int, float, Tuple[Union[int, float], Union[int, float]]] = (
+        0, 100
+    ),
     length_bounds: Union[int, Tuple[int, int]] = (0, 2**32),
     quality_threshold: int = 0,
 ) -> None:
@@ -29,9 +32,10 @@ def filter_fastq(
     """
     # Читаем исходный файл в словарь, используя функцию из модуля
     sequences = read_fastq(Path(input_fastq))
+
     filtered_seqs = {}
     for name, (seq, quality) in sequences.items():
-        # Фильтруем, используя вспомогательные функции
+        # Фильтруем, используя вспомогательные функции, как и раньше
         if (
             is_passing_gc_filter(seq, gc_bounds)
             and is_passing_length_filter(seq, length_bounds)
@@ -54,6 +58,8 @@ def run_dna_rna_tools(
 
 
 # Блок для демонстрации работы
+
+
 if __name__ == "__main__":
     # Указываем путь к нашему тестовому файлу
     input_file = "example_data/example_fastq.fastq"
@@ -67,8 +73,11 @@ if __name__ == "__main__":
         input_fastq=input_file,
         output_fastq=output_file,
         gc_bounds=(30, 70),  # Например, ищем риды с GC от 30% до 70%
-        length_bounds=(50, 150), # и длиной от 50 до 150
-        quality_threshold=20 # и средним качеством > 20
+        length_bounds=(50, 150),  # и длиной от 50 до 150
+        quality_threshold=20  # и средним качеством > 20
     )
 
-    print("Фильтрация завершена. Результат сохранен в папке 'filtered'")
+    print(
+        f"Фильтрация завершена. Результат сохранен в папке 'filtered' "
+        f"под именем '{output_file}'"
+    )

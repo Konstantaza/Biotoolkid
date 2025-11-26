@@ -1,95 +1,111 @@
-# bio_utils/dna_rna_tools.py
-from typing import Callable, List, Tuple, Union, Sequence
-
-
 def is_nucleic_acid(seq: str) -> bool:
     """
-    Проверяет, является ли строка нуклеиновой кислотой (ДНК или РНК).
-
-    Args:
-        seq (str): Входная последовательность.
-
-    Returns:
-        bool: True, если последовательность валидна, иначе False.
+    Checks if the sequence contains only valid nucleotides (A, T, G, C, U)
+    and does not mix DNA (T) and RNA (U) specific nucleotides.
     """
     if not isinstance(seq, str) or not seq:
         return False
-    # Проверка через множества
-    valid_nucleotides = set("ATGCU")
+
     seq_upper = seq.upper()
-    return set(seq_upper).issubset(valid_nucleotides) and not ("T" in seq_upper and "U" in seq_upper)
+    valid_nucleotides = {"A", "T", "G", "C", "U"}
+
+    unique_chars = set(seq_upper)
+    if not unique_chars.issubset(valid_nucleotides):
+        return False
+
+    if "T" in unique_chars and "U" in unique_chars:
+        return False
+
+    return True
 
 
 def transcribe_sequence(seq: str) -> str:
-    """Транскрибирует ДНК последовательность в РНК."""
-    return seq.upper().replace("T", "U")
+    """Transcribes DNA sequence to RNA."""
+    return seq.replace("T", "U").replace("t", "u")
 
 
 def reverse_sequence(seq: str) -> str:
-    """Возвращает перевернутую последовательность."""
-    return seq.upper()[::-1]
+    """Reverses the sequence."""
+    return seq[::-1]
 
 
 def complement_sequence(seq: str) -> str:
-    """Возвращает комплементарную последовательность."""
-    seq_upper = seq.upper()
-    complement_map = str.maketrans("ATGCU", "TACGA")
-    return seq_upper.translate(complement_map)
+    """Returns the complementary sequence."""
+    is_rna = "u" in seq.lower()
+
+    if is_rna:
+        complement_map = {
+            "A": "U",
+            "U": "A",
+            "G": "C",
+            "C": "G",
+            "a": "u",
+            "u": "a",
+            "g": "c",
+            "c": "g",
+        }
+    else:
+        complement_map = {
+            "A": "T",
+            "T": "A",
+            "G": "C",
+            "C": "G",
+            "a": "t",
+            "t": "a",
+            "g": "c",
+            "c": "g",
+        }
+
+    return "".join(complement_map.get(ch, ch) for ch in seq)
 
 
 def reverse_complement_sequence(seq: str) -> str:
-    """Возвращает обратную комплементарную последовательность."""
-    return complement_sequence(reverse_sequence(seq))
+    """Returns the reverse complementary sequence."""
+    return reverse_sequence(complement_sequence(seq))
 
 
-def get_command_handler(command: str) -> Tuple[str, Callable[[str], Union[str, bool]]]:
+def run_dna_rna_tools(*args):
     """
-    Возвращает тип команды и соответствующую ей функцию-обработчик.
-
-    Args:
-        command (str): Название команды.
-
-    Returns:
-        Tuple[str, Callable]: Кортеж из типа команды ("check" или "action") и функции.
+    Main entry point for DNA/RNA processing tools.
+    Accepts sequences and a command as the last argument.
     """
-    if command == "is_nucleic_acid":
-        return "check", is_nucleic_acid
+    if len(args) < 2:
+        raise ValueError("At least one sequence and one command are required")
 
-    commands = {
-        "transcribe": transcribe_sequence,
-        "reverse": reverse_sequence,
-        "complement": complement_sequence,
-        "reverse_complement": reverse_complement_sequence,
+    sequences = args[:-1]
+    command = args[-1]
+
+    valid_commands = {
+        "transcribe",
+        "reverse",
+        "complement",
+        "reverse_complement",
+        "is_nucleic_acid",
     }
+    if command not in valid_commands:
+        raise ValueError(f"Unknown command: {command}")
 
-    if command in commands:
-        return "action", commands[command]
-
-    raise ValueError(f"Неизвестная команда: '{command}'")
-
-
-def apply_actions(
-    sequences: Sequence[str], mode: str, func: Callable
-) -> Union[List[Union[str, bool, None]], Union[str, bool, None]]:
-    """
-    Применяет функцию к списку последовательностей в зависимости от режима.
-
-    Args:
-        sequences (Sequence[str]): Кортеж или список последовательностей.
-        mode (str): Режим работы ("check" или "action").
-        func (Callable): Функция для применения.
-
-    Returns:
-        Union[List, str, bool, None]: Список или одиночный результат.
-    """
     results = []
-    for seq in sequences:
-        if mode == "check":
-            results.append(func(seq))
-        elif mode == "action":
-            if not is_nucleic_acid(seq):
-                results.append(None)
-            else:
-                results.append(func(seq))
 
-    return results[0] if len(results) == 1 else results
+    for seq in sequences:
+        if not is_nucleic_acid(seq):
+            if command == "is_nucleic_acid":
+                results.append(False)
+            else:
+                print(f"Warning: Sequence '{seq}' is invalid. Skipping.")
+                results.append(seq)
+        else:
+            if command == "is_nucleic_acid":
+                results.append(True)
+            elif command == "transcribe":
+                results.append(transcribe_sequence(seq))
+            elif command == "reverse":
+                results.append(reverse_sequence(seq))
+            elif command == "complement":
+                results.append(complement_sequence(seq))
+            elif command == "reverse_complement":
+                results.append(reverse_complement_sequence(seq))
+
+    if len(results) == 1:
+        return results[0]
+    return results

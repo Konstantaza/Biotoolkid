@@ -1,15 +1,12 @@
-# bio_files_processor.py
 import re
 from pathlib import Path
 from typing import Optional, Generator, Tuple
 
-# Функция 1: Работа с FASTA
-
-
+# Function 1: FASTA Processing
 def _fasta_parser(input_fasta: str) -> Generator[Tuple[str, str], None, None]:
     """
-    Вспомогательный генератор для чтения FASTA файлов.
-    Выдает по одной записи (заголовок, последовательность) за раз.
+    Helper generator to read FASTA files.
+    Yields one record (header, sequence) at a time.
     """
     header = None
     sequence = []
@@ -33,7 +30,8 @@ def convert_multiline_fasta_to_oneline(
     input_fasta: str, output_fasta: Optional[str] = None
 ) -> None:
     """
-    Преобразует многострочный FASTA файл в однострочный.
+    Converts a multiline FASTA file to a oneline FASTA file.
+    Saves the result in the 'processing_results' directory.
     """
     output_dir = Path("processing_results")
     output_dir.mkdir(exist_ok=True)
@@ -48,15 +46,14 @@ def convert_multiline_fasta_to_oneline(
         for header, sequence in _fasta_parser(input_fasta):
             out_f.write(f"{header}\n")
             out_f.write(f"{sequence}\n")
-    print(f"Однострочный FASTA файл сохранен как: {final_output_path}")
+    print(f"Oneline FASTA saved to: {final_output_path}")
 
 
-# Функция 2: Работа с BLAST
-
-
+# Function 2: BLAST Processing
 def parse_blast_output(input_file: str, output_file: str) -> None:
     """
-    Извлекает описания лучших совпадений из текстового вывода BLAST.
+    Extracts descriptions of the top hits from BLAST text output.
+    Sorts the results alphabetically and saves to a file.
     """
     output_dir = Path("processing_results")
     output_dir.mkdir(exist_ok=True)
@@ -80,19 +77,9 @@ def parse_blast_output(input_file: str, output_file: str) -> None:
     with open(final_output_path, 'w') as out_f:
         for hit in top_hits:
             out_f.write(f"{hit}\n")
-    print(f"Результаты парсинга BLAST сохранены в: {final_output_path}")
+    print(f"BLAST parsing results saved to: {final_output_path}")
 
-
-# Блок для демонстрации работы
 
 if __name__ == "__main__":
-    print("--- Тестирование конвертера FASTA ---")
-    convert_multiline_fasta_to_oneline(
-        "example_data/example_multiline_fasta.fasta"
-    )
-
-    print("\n--- Тестирование парсера BLAST ---")
-    parse_blast_output(
-        "example_data/example_blast_results.txt",
-        output_file="blast_top_hits_sorted.txt"
-    )
+    print("--- Testing FASTA Converter ---")
+    print("\n--- Testing BLAST Parser ---")

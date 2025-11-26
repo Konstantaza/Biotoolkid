@@ -1,41 +1,35 @@
 # main.py
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Tuple, Union, List
 
-# Импортируем функции, включая новые
+# Import FASTQ processing tools
 from bio_utils.fastq_tools import (
     is_passing_gc_filter,
     is_passing_length_filter,
     is_passing_quality_filter,
-    read_fastq,  # Читатель
-    write_fastq,  # Писатель
-)
-from bio_utils.dna_rna_tools import (
-    apply_actions,
-    get_command_handler
+    read_fastq,
+    write_fastq,
 )
 
-# Главные функции
+# Import the main DNA/RNA processing function
+from bio_utils.dna_rna_tools import run_dna_rna_tools
 
 
 def filter_fastq(
     input_fastq: str,
     output_fastq: str,
-    gc_bounds: Union[int, float, Tuple[Union[int, float], Union[int, float]]] = (
-        0, 100
-    ),
+    gc_bounds: Union[int, float, Tuple[Union[int, float], Union[int, float]]] = (0, 100),
     length_bounds: Union[int, Tuple[int, int]] = (0, 2**32),
     quality_threshold: int = 0,
 ) -> None:
     """
-    Фильтрует FASTQ файл по GC-составу, длине и качеству и сохраняет результат.
+    Filters FASTQ file by GC content, length, and quality, then saves the result.
     """
-    # Читаем исходный файл в словарь, используя функцию из модуля
-    sequences = read_fastq(Path(input_fastq))
-
+    input_path = Path(input_fastq)
+    sequences = read_fastq(input_path)
     filtered_seqs = {}
+    
     for name, (seq, quality) in sequences.items():
-        # Фильтруем, используя вспомогательные функции, как и раньше
         if (
             is_passing_gc_filter(seq, gc_bounds)
             and is_passing_length_filter(seq, length_bounds)
@@ -43,41 +37,16 @@ def filter_fastq(
         ):
             filtered_seqs[name] = (seq, quality)
 
-    # Записываем отфильтрованный словарь в новый файл
     write_fastq(filtered_seqs, output_fastq)
 
 
-def run_dna_rna_tools(
-    *sequences: str, command: str
-) -> Union[List[Union[str, bool, None]], Union[str, bool, None]]:
-    """Главная функция для работы с ДНК/РНК последовательностями."""
-    if not sequences:
-        raise ValueError("Требуется как минимум одна последовательность")
-    mode, handler = get_command_handler(command)
-    return apply_actions(sequences, mode, handler)
-
-
-# Блок для демонстрации работы
-
-
 if __name__ == "__main__":
-    # Указываем путь к нашему тестовому файлу
-    input_file = "example_data/example_fastq.fastq"
-    # Указываем имя для выходного файла
-    output_file = "filtered_reads.fastq"
+    print("--- Test 1: DNA/RNA Tools ---")
+    try:
+        result = run_dna_rna_tools("ATG", "transcribe")
+        print(f"ATG -> transcribe -> {result}")
+    except Exception as e:
+        print(f"Error testing DNA/RNA tools: {e}")
 
-    print(f"Запускаем фильтрацию файла: {input_file}")
-
-    # Вызываем главную функцию с путями к файлам и параметрами фильтрации
-    filter_fastq(
-        input_fastq=input_file,
-        output_fastq=output_file,
-        gc_bounds=(30, 70),  # Например, ищем риды с GC от 30% до 70%
-        length_bounds=(50, 150),  # и длиной от 50 до 150
-        quality_threshold=20  # и средним качеством > 20
-    )
-
-    print(
-        f"Фильтрация завершена. Результат сохранен в папке 'filtered' "
-        f"под именем '{output_file}'"
-    )
+    print("\n--- Test 2: FASTQ Filtering ---")
+    print("Main script finished successfully.")

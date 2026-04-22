@@ -1,10 +1,13 @@
 # main.py
+from loguru import logger
+import argparse
 from pathlib import Path
 from typing import Tuple, Union, List
 from abc import ABC, abstractmethod
 from Bio import SeqIO
 from Bio.SeqUtils import gc_fraction
 
+logger.add("tool.log", format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}")
 
 class BiologicalSequence(ABC):
     def __init__(self, sequence: str):
@@ -19,7 +22,7 @@ class BiologicalSequence(ABC):
 
     def check_alphabet(self) -> bool:
         """
-        Проверяет алфавит. Работает для всех наследников благодаря self.alphabet.
+       Checks the alphabet. It works for all heirs thanks to self.alphabet.
         """
         return set(self.sequence.upper()).issubset(self.alphabet)
     
@@ -172,6 +175,7 @@ def filter_fastq(
     Uses Biopython's SeqIO and SeqRecord objects for parsing and writing.
     Saves the filtered records to a 'filtered' directory.
     """
+    logger.info("--------------OKAAAAAY LET'S GOOOOOOO--------------")
     if isinstance(gc_bounds, (int, float)):
         gc_bounds = (0, gc_bounds)
     if isinstance(length_bounds, int):
@@ -182,7 +186,7 @@ def filter_fastq(
     final_path = output_dir / output_fastq
 
     if final_path.exists():
-        print(f"Warning: File {final_path} already exists. Write operation aborted.")
+        logger.error(f"Warning: File {final_path} already exists. Write operation aborted.")
         return
 
     passed_records = []
@@ -201,31 +205,24 @@ def filter_fastq(
         passed_records.append(record)
 
     SeqIO.write(passed_records, final_path, "fastq")
+    logger.info(f"--------------{len(passed_records)} records were saved--------------")
 
 
 if __name__ == "__main__":
-    print("Test OOP Biological Sequences")
+    parser = argparse.ArgumentParser(description="Tool for filtering FASTQ files")
+    parser.add_argument("-i", "--input", type=str, required=True, help="Path to input FASTQ file")
+    parser.add_argument("-o", "--output", type=str, required=True, help="Name of output FASTQ file")
+    parser.add_argument("-q", "--quality_threshold", type=int, default=0, help="Average Phred quality threshold")
+    parser.add_argument("-gcb", "--gc_bounds", type=float, nargs=2, default=[0.0, 100.0], help="GC content bounds (min max)")
+    parser.add_argument("-lb", "--length_bounds", type=int, nargs=2, default=[0, 2**32], help="Sequence length bounds (min max)")
+    args = parser.parse_args()
     
-    # DNA
-    dna = DNASequence("ATGC")
-    print(f"Original DNA: {dna}")  
-    print(f"DNA length: {len(dna)}") 
-    print(f"Is alphabet valid? {dna.check_alphabet()}")
+    filter_fastq(
+        input_fastq=args.input,
+        output_fastq=args.output,
+        gc_bounds=args.gc_bounds,
+        length_bounds=args.length_bounds,
+        quality_threshold=args.quality_threshold
+    )
     
-
-    print(f"Complement: {dna.complement()}")
-    print(f"Reverse complement: {dna.reverse_complement()}")
-    
-
-    rna = dna.transcribe()
-    print(f"Transcribed to RNA: {rna}")
-    print(f"RNA complement: {rna.complement()}")
-    
-
-    sliced_dna = dna[1:3]
-    print(f"Sliced DNA [1:3]: {sliced_dna} (Type: {type(sliced_dna).__name__})")
-    
-    # Protein
-    protein = AminoAcidSequence("MAVW")
-    print(f"Protein: {protein}")
-    print(f"Hydrophobic count: {protein.count_hydrophobic()}")
+   
